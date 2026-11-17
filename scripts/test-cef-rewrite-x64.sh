@@ -26,4 +26,15 @@ port="$(printf '%s' "$out" | sed -n 's/.*--remote-debugging-port=\([0-9]*\).*/\1
 [ -s "$T/home/.local/share/Lumen/cef_port" ] || { echo "FAIL: cef_port not published"; exit 1; }
 case "$(cat "$T/home/.SLSsteam.log")" in *"CEF: remote-debugging port"*) ;;
 	*) echo "FAIL: setup() did not run in the guarded client"; exit 1;; esac
-echo "PASS test-cef-rewrite-x64 (port $port)"
+
+# With KeepDefaultCefPort: yes, port remains 8080 and no contract is published
+mkdir -p "$T/home2/.config/SLSsteam" "$T/home2/.local/share" "$T/home2/.cache"
+printf 'Notifications: no\nNotifyInit: no\nKeepDefaultCefPort: yes\n' > "$T/home2/.config/SLSsteam/config.yaml"
+out2="$(env -i PATH=/usr/bin:/bin HOME="$T/home2" XDG_CONFIG_HOME="$T/home2/.config" \
+	XDG_DATA_HOME="$T/home2/.local/share" XDG_CACHE_HOME="$T/home2/.cache" \
+	STEAM_STEAMRT_RECURSION_GUARD=1 LD_AUDIT="$LIB" "$T/steam")"
+port2="$(printf '%s' "$out2" | sed -n 's/.*--remote-debugging-port=\([0-9]*\).*/\1/p')"
+[ "$port2" = 8080 ] || { echo "FAIL: KeepDefaultCefPort expected 8080, got $port2 out='$out2'"; exit 1; }
+[ ! -e "$T/home2/.local/share/Lumen/cef_port" ] || { echo "FAIL: cef_port should not be published when keeping 8080"; exit 1; }
+
+echo "PASS test-cef-rewrite-x64 (port $port, KeepDefaultCefPort 8080)"

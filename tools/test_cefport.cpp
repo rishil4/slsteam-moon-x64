@@ -279,6 +279,16 @@ static void test_decky()
 	{ std::ofstream(home + "/homebrew/services/PluginLoader") << "x"; }
 	CHECK(CefPort::deckyPresent(home), "decky: present when PluginLoader exists");
 
+	// Alternate markers
+	std::filesystem::remove(home + "/homebrew/services/PluginLoader", ec);
+	CHECK(!CefPort::deckyPresent(home), "decky: absent when PluginLoader removed");
+	{ std::ofstream(home + "/homebrew/services/decky-loader") << "x"; }
+	CHECK(CefPort::deckyPresent(home), "decky: present when decky-loader exists");
+
+	std::filesystem::remove(home + "/homebrew/services/decky-loader", ec);
+	std::filesystem::create_directories(home + "/homebrew/plugins", ec);
+	CHECK(CefPort::deckyPresent(home), "decky: present when homebrew/plugins exists");
+
 	// Empty home string -> never crashes, returns false.
 	CHECK(!CefPort::deckyPresent(std::string("")), "decky: empty home -> false");
 

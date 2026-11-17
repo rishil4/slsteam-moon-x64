@@ -339,10 +339,13 @@ namespace CefPort
 	// Bazzite box: multiple CDP clients coexist on one CEF target, so Decky and
 	// Lumen share 8080 without either kicking the other).
 	//
-	// Marker: the canonical Decky install drops its loader binary at
-	// $HOME/homebrew/services/PluginLoader (user-readable, no root needed; the
-	// decky-installer uninstall removes it). `home` is taken as a parameter so
-	// the check is unit-testable against a synthetic fixture.
+	// Markers:
+	//   1. $HOME/homebrew/services/PluginLoader (canonical Decky binary)
+	//   2. $HOME/homebrew/services/decky-loader (alternate binary name)
+	//   3. $HOME/homebrew/services/plugin_loader-exec (exec wrapper)
+	//   4. $HOME/homebrew/plugins (Decky plugins directory)
+	//   5. $HOME/homebrew/settings.json (Decky settings)
+	// `home` is taken as a parameter so the check is unit-testable against a synthetic fixture.
 	inline bool deckyPresent(const std::string& home)
 	{
 		if (home.empty())
@@ -350,17 +353,44 @@ namespace CefPort
 			return false;
 		}
 		std::error_code ec;
-		return std::filesystem::exists(home + "/homebrew/services/PluginLoader", ec);
+		if (std::filesystem::exists(home + "/homebrew/services/PluginLoader", ec)
+		    || std::filesystem::exists(home + "/homebrew/services/decky-loader", ec)
+		    || std::filesystem::exists(home + "/homebrew/services/plugin_loader-exec", ec)
+		    || std::filesystem::exists(home + "/homebrew/plugins", ec)
+		    || std::filesystem::exists(home + "/homebrew/settings.json", ec))
+		{
+			return true;
+		}
+		return false;
 	}
 
 	inline bool deckyPresent()
 	{
-		const char* home = std::getenv("HOME");
-		if (!home || !*home)
+		const char* envKeep = std::getenv("SLSSTEAM_KEEP_CEF_PORT");
+		if (envKeep && (*envKeep == '1' || *envKeep == 'y' || *envKeep == 'Y' || *envKeep == 't' || *envKeep == 'T'))
 		{
-			return false;
+			return true;
 		}
-		return deckyPresent(std::string(home));
+		std::error_code ec;
+		if (std::filesystem::exists("/etc/systemd/system/plugin_loader.service", ec))
+		{
+			return true;
+		}
+		const char* home = std::getenv("HOME");
+		if (home && *home)
+		{
+			if (deckyPresent(std::string(home)))
+			{
+				return true;
+			}
+		}
+		// On SteamOS, deck is the standard user even if HOME was altered/empty
+		if (std::filesystem::exists("/home/deck/homebrew/plugins", ec)
+		    || std::filesystem::exists("/home/deck/homebrew/services/PluginLoader", ec))
+		{
+			return true;
+		}
+		return false;
 	}
 
 	// Best-effort removal of the Lumen contract file. Called when we decide to

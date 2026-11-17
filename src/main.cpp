@@ -337,12 +337,12 @@ static void setup(SetupTrigger trigger)
 	// (multiple CDP clients coexist on one CEF target — verified on Bazzite). We
 	// also drop any STALE contract from a previous ephemeral session so Lumen
 	// doesn't connect to a dead port instead of falling back to 8080.
-	if (CefPort::deckyPresent())
+	if (g_config.keepDefaultCefPort.get() || CefPort::deckyPresent())
 	{
 		g_cefKeepDefaultPort = true;
 		g_cefSessionPort = 0;
 		CefPort::removeContract(CefPort::contractPath());
-		g_pLog->info("CEF: Decky Loader detected -> keeping debug port on 8080 (not rewriting); Lumen + Decky share it\n");
+		g_pLog->info("CEF: Decky Loader / default port requested -> keeping debug port on 8080 (not rewriting); Lumen + Decky share it\n");
 	}
 	else
 	{
@@ -974,11 +974,11 @@ namespace
 			return nullptr;
 		}
 
-		// Decky coexistence: leave Steam on its hard-coded 8080 — no rewrite, no
+		// Decky coexistence / config: leave Steam on its hard-coded 8080 — no rewrite, no
 		// contract. Gating here (not just via g_cefSessionPort) is essential: the
 		// lazy fallback below would otherwise pick a fresh ephemeral port and
 		// rewrite anyway.
-		if (g_cefKeepDefaultPort)
+		if (g_cefKeepDefaultPort || g_config.keepDefaultCefPort.get() || CefPort::deckyPresent())
 		{
 			return nullptr;
 		}

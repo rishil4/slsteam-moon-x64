@@ -118,6 +118,11 @@ API: no
 #NOT using CloudRedirect, to avoid a doomed cloud sync that Steam rejects.
 DisableCloud: no
 
+#Keep Steam's CEF remote debugging on default port 8080 instead of rewriting
+#to an ephemeral port. Enable this if you use Decky Loader or another tool that
+#requires CEF debugging on port 8080. (Decky Loader is also auto-detected).
+KeepDefaultCefPort: no
+
 #Keep managed games on the latest build. Default "yes" (games auto-update).
 #Set to "no" to lock every managed game to its currently installed build (like
 #LuaTools' "Auto Update Apps" toggle). Builds you pin per game still apply.

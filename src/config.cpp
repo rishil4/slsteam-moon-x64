@@ -477,6 +477,7 @@ bool CConfig::loadSettings()
 	fakeEmail = getSetting<std::string>(node, "FakeEmail", "");
 	fakeWalletBalance = getSetting<int32_t>(node, "FakeWalletBalance", 0);
 	disableCloud = getSetting<bool>(node, "DisableCloud", true);
+	keepDefaultCefPort = getSetting<bool>(node, "KeepDefaultCefPort", false);
 	autoUpdateApps = getSetting<bool>(node, "AutoUpdateApps", true);
 	DonateSettings donateSettings;
 	const YAML::Node donateNode = node["Donate"];
@@ -522,7 +523,7 @@ bool CConfig::loadSettings()
 		"Notifications=%i WarnHashMissmatch=%i NotifyInit=%i API=%i "
 		"FakeEmail=%s FakeWalletBalance=%i DisableCloud=%i Donate=%i "
 		"InjectAllAdvertisedDlc=%i Achievements=%i PatternCache=%i "
-		"AsyncProvision=%i ExtendedLogging=%i AutoUpdateApps=%i LogLevel=%u\n",
+		"AsyncProvision=%i ExtendedLogging=%i AutoUpdateApps=%i KeepDefaultCefPort=%i LogLevel=%u\n",
 		disableFamilyLock.get(), disableParentalRestrictions.get(),
 		useWhiteList.get(), automaticFilter.get(), playNotOwnedGames.get(),
 		safeMode.get(), notifications.get(), warnHashMissmatch.get(),
@@ -530,7 +531,7 @@ bool CConfig::loadSettings()
 		fakeWalletBalance.get(), disableCloud.get(), donate.get().enabled,
 		injectAllAdvertisedDlc.get(),
 		achievements.get(), patternCache.get(), asyncProvision.get(),
-		extendedLogging.get(), autoUpdateApps.get(), logLevel.get());
+		extendedLogging.get(), autoUpdateApps.get(), keepDefaultCefPort.get(), logLevel.get());
 
 	appIds = getList<uint32_t>(node, "AppIds");
 
